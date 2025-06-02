@@ -41,6 +41,7 @@ begin
 	--
 	-- -- Odczyt:
 	-- -- -- Clock100MHz: std_logic
+	-- -- -- button_in: std_logic
 	-- -- -- stan_next: STANY_t
 	-- -- -- stan: STANY_t
 	--
@@ -48,7 +49,7 @@ begin
 	-- -- -- DebounceCounter: std_logic_vector (26 downto 0)
 	-- -- -- stan: STANY_t
 	--
-	SEQ: process(Clock100MHz, stan, stan_next)
+	SEQ: process(Clock100MHz, button_in, stan, stan_next)
 	begin
 		if (rising_edge(Clock100MHz)) then
 			stan <= stan_next;
@@ -56,7 +57,7 @@ begin
 
 			case stan is
 			when STABILNY =>
-				if (buttonCopy = '1' OR buttonCopy = 'H') then
+				if (button_in = '1' OR button_in = 'H') then
 					DebounceCounter <= "000000000000000000000000000";
 				end if;
 
@@ -109,6 +110,9 @@ begin
 				
 			end case;
 	end process COMB;
+	
+	-- Przypisanie wartosci do wyjscia
+	button_out <= '1' when (button_in = '1' OR stan = NIESTABILNY) else '0';
 
 
 end debouncer_arch;
