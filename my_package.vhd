@@ -13,7 +13,7 @@ use IEEE.STD_LOGIC_1164.all;
 package my_package is
 
 	-- Typ wyliczeniowy do obslugi stanu planszy
-	type gametype is ('X', 'O', '-');
+	type GAME_t is ('-', 'O', 'X');
 
 end my_package;
 
