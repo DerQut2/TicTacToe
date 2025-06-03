@@ -102,7 +102,6 @@ begin
 	-- -- DEBOUNCER
 	left_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(3), button_out => left_button);
 	right_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(2), button_out => right_button);
-	reset_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(1), button_out => reset_button);
 	confirm_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(0), button_out => confirm_button);
 	-- --
 	--
@@ -198,6 +197,7 @@ begin
 	-- --
 	--
 	-- Wspolbiezne przypisanie wartosci sygnalow
+	reset_button <= Button(1);
 	reset <= '1' when reset_counter = "101111101011110000100000000" else '0';
 	--
 	left_button_event <= '1' when (left_button = '1' AND left_button_buffer = '0') else '0';
