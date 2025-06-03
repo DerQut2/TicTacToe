@@ -30,6 +30,9 @@ entity top is
 		-- Wyjscie dzwieku (buzzer)
 		Buzzer: out std_logic;
 		
+		-- Wyjscia LED
+		LED: out std_logic_vector(3 downto 0);
+		
 		-- Wyjscia VGA
 		-- -- Linie koloru
 		VGA_R: out std_logic;
@@ -114,7 +117,7 @@ begin
 	
 	-- Stworzenie procesow
 	--
-	-- -- Sekwencyjna obsluga licznika reset
+	-- -- Sekwencyjna obsluga licznika reset (zliczanie do 1 sekundy)
 	-- --
 	-- -- -- Odczyt:
 	-- -- -- -- Clock100MHz: std_logic
@@ -161,34 +164,11 @@ begin
 	end process BUFFER_BUTTONS;
 	-- --
 	--
-	-- -- Kombinacyjne ustawienie flag zdarzen przyciskow
-	--
-	-- -- -- Odczyt:
-	-- -- -- -- left_button: std_logic
-	-- -- -- -- right_button: std_logic
-	-- -- -- -- confirm_button: std_logic
-	-- -- -- -- left_button_buffer: std_logic
-	-- -- -- -- right_button_buffer: std_logic
-	-- -- -- -- confirm_button_buffer: std_logic
-	-- -- -- --
-	-- --
-	-- -- -- Zapis:
-	-- -- -- -- left_button_event: std_logic
-	-- -- -- -- right_button_event: std_logic
-	-- -- -- -- confirm_button_event: std_logic
-	-- --
-	SET_BUTTON_EVENT_FLAGS: process(left_button, right_button, confirm_button, left_button_buffer, right_button_buffer, confirm_button_buffer)
-	begin
-		left_button_event <= '1' when (left_button = '1' AND left_button_buffer = '0') else '0';
-		right_button_event <= '1' when (right_button = '1' AND right_button_buffer = '0') else '0';
-		confirm_button_event <= '1' when (confirm_button = '1' AND confirm_button_buffer = '0') else '0';
-	end process SET_BUTTON_EVENT_FLAGS;
-	-- --
-	--
 	-- -- Sekwencyjne ustawienie pozycji kursora
 	--
 	-- -- -- Odczyt:
 	-- -- -- -- Clock100MHz: std_logic
+	-- -- -- -- reset: std_logic
 	-- -- -- -- left_button_event: std_logic
 	-- -- -- -- right_button_event: std_logic
 	-- -- -- -- confirm_button_event: std_logic
@@ -197,9 +177,11 @@ begin
 	-- -- -- Zapis:
 	-- -- -- -- cursor_pos: unsigned (3 downto 0)
 	-- --
-	SET_CURSOR_POSITION: process(Clock100MHz, left_button_event, right_button_event, confirm_button_event, cursor_pos)
+	SET_CURSOR_POSITION: process(Clock100MHz, reset, left_button_event, right_button_event, confirm_button_event, cursor_pos)
 	begin
-		if (rising_edge(Clock100MHz)) then
+		if (reset = '1') then
+			cursor_pos <= "0000";
+		elsif (rising_edge(Clock100MHz)) then
 			if (left_button_event = '1') then
 				if NOT(cursor_pos = "0000") then
 					cursor_pos <= cursor_pos - 1;
@@ -217,6 +199,17 @@ begin
 	--
 	-- Wspolbiezne przypisanie wartosci sygnalow
 	reset <= '1' when reset_counter = "101111101011110000100000000" else '0';
+	--
+	left_button_event <= '1' when (left_button = '1' AND left_button_buffer = '0') else '0';
+	right_button_event <= '1' when (right_button = '1' AND right_button_buffer = '0') else '0';
+	confirm_button_event <= '1' when (confirm_button = '1' AND confirm_button_buffer = '0') else '0';
+	--
+	LED(0) <= left_button;
+	LED(1) <= right_button;
+	LED(2) <= reset_button;
+	LED(3) <= confirm_button;
+	--
+	Buzzer <= reset;
 	
 
 
