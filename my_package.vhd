@@ -14,6 +14,7 @@ package my_package is
 
 	-- Typ wyliczeniowy do obslugi stanu planszy
 	type GAME_t is ('-', 'O', 'X');
+	type GAME_t_Vector is ARRAY (8 downto 0) of GAME_t;
 
 end my_package;
 
