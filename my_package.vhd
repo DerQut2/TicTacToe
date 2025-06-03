@@ -4,7 +4,7 @@
 -- Projekt:			Gra kolko i krzyzyk
 --
 -- Pakiet:			my_package.vhd
--- Opis:				Typy wyliczeniowe wykorzystane w projekcie
+-- Opis:				Typy wykorzystane w projekcie
 ----------------------------------------------------------------------------------
 
 library IEEE;
