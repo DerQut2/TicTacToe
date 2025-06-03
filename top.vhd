@@ -63,6 +63,7 @@ architecture top_arch of top is
 	signal left_button: std_logic := '0';
 	signal right_button: std_logic := '0';
 	signal confirm_button: std_logic := '0';
+	signal reset_button: std_logic := '0';
 	-- --
 	--
 	-- -- Zegarowy bufor przyciskow (w celu wykrycia zdarzen)
@@ -84,6 +85,11 @@ architecture top_arch of top is
 	--
 	-- -- Aktualna pozycja kursora
 	signal cursor_pos: unsigned (3 downto 0) := (others => '0');
+	-- --
+	--
+	-- -- Obsluga sygnalu reset
+	signal reset: std_logic := '0';
+	signal reset_counter: unsigned (26 downto 0) := (others => '0');
 	
 	
 	
@@ -93,6 +99,7 @@ begin
 	-- -- DEBOUNCER
 	left_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(3), button_out => left_button);
 	right_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(2), button_out => right_button);
+	reset_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(1), button_out => reset_button);
 	confirm_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(0), button_out => confirm_button);
 	-- --
 	--
@@ -106,6 +113,30 @@ begin
 	--
 	
 	-- Stworzenie procesow
+	--
+	-- -- Sekwencyjna obsluga licznika reset
+	-- --
+	-- -- -- Odczyt:
+	-- -- -- -- Clock100MHz: std_logic
+	-- -- -- -- reset_button: std_logic
+	-- -- -- -- reset_counter: unsigned (26 downto 0)
+	-- --
+	-- -- -- Zapis:
+	-- -- -- -- reset_counter: unsigned (26 downto 0)
+	-- --
+	SET_RESET_COUNTER: process(Clock100MHz, reset_button, reset_counter)
+	begin
+		if (rising_edge(Clock100MHz)) then
+			if (reset_button = '1') then
+				if NOT(reset_counter = "101111101011110000100000000") then
+					reset_counter <= reset_counter + 1;
+				end if;
+			else
+				reset_counter <= (others => '0');
+			end if;
+		end if;
+	end process SET_RESET_COUNTER;
+	-- --
 	--
 	-- -- Sekwencyjne buforowanie przyciskow
 	-- --
@@ -182,6 +213,10 @@ begin
 			end if;
 		end if;
 	end process SET_CURSOR_POSITION;
+	-- --
+	--
+	-- Wspolbiezne przypisanie wartosci sygnalow
+	reset <= '1' when reset_counter = "101111101011110000100000000" else '0';
 	
 
 
