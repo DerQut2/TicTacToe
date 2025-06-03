@@ -156,7 +156,7 @@ begin
 	-- --
 	BUFFER_BUTTONS: process(Clock100MHz, left_button, right_button, confirm_button)
 	begin
-		if (falling_edge(Clock100MHz)) then
+		if (rising_edge(Clock100MHz)) then
 			left_button_buffer <= left_button;
 			right_button_buffer <= right_button;
 			confirm_button_buffer <= confirm_button;
