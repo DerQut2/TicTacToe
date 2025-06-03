@@ -35,6 +35,9 @@ architecture debouncer_arch of debouncer is
 	-- Glowny licznik
 	signal DebounceCounter: unsigned (26 downto 0) := "000000000000000000000000000";
 	
+	-- Znacznik osiagniecia stanu niestabilnego
+	signal can_output: std_logic := '0';
+	
 begin
 	
 	-- Sekwencyjne ustalanie wartosci obecnego stanu maszyny oraz glownego licznika
@@ -44,12 +47,14 @@ begin
 	-- -- -- button_in: std_logic
 	-- -- -- stan_next: STANY_t
 	-- -- -- stan: STANY_t
+	-- -- -- can_output: std_logic
 	--
 	-- -- Zapis:
 	-- -- -- DebounceCounter: std_logic_vector (26 downto 0)
 	-- -- -- stan: STANY_t
+	-- -- -- can_output: std_logic
 	--
-	SEQ: process(Clock100MHz, button_in, stan, stan_next)
+	SEQ: process(Clock100MHz, button_in, stan, stan_next, can_output)
 	begin
 		if (rising_edge(Clock100MHz)) then
 			stan <= stan_next;
@@ -57,16 +62,19 @@ begin
 
 			case stan is
 			when STABILNY =>
+				can_output <= '0';
 				if (button_in = '1' OR button_in = 'H') then
 					DebounceCounter <= "000000000000000000000000000";
 				end if;
 
 			when CZEKAJ =>
+				can_output <= can_output;
 				if (DebounceCounter = "000000111101000010010000000") then
 					DebounceCounter <= "000000000000000000000000000";
 				end if;
 				
 			when NIESTABILNY =>
+				can_output <= '1';
 				if (DebounceCounter = "101111101011110000100000000") then
 					DebounceCounter <= "000000000000000000000000000";
 				end if;
@@ -87,7 +95,6 @@ begin
 	--
 	COMB: process(stan, button_in, DebounceCounter)
 	begin
-		stan_next <= stan;
 		case stan is
 			when STABILNY =>
 				if  (button_in = '1' OR button_in = 'H') then
@@ -112,7 +119,7 @@ begin
 	end process COMB;
 	
 	-- Przypisanie wartosci do wyjscia
-	button_out <= '1' when (button_in = '1' OR stan = NIESTABILNY) else '0';
+	button_out <= can_output;
 
 
 end debouncer_arch;
