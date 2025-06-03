@@ -42,8 +42,36 @@ entity top is
 end top;
 
 architecture top_arch of top is
-
+	
+	-- Deklaracja komponentow
+	-- -- DEBOUNCER
+	component DEBOUNCER is
+		Port(
+			-- Wejscie zegarowe
+			Clock100MHz: in std_logic;
+			
+			-- Wejscie przycisku do obslugi
+			button_in: in std_logic;
+			
+			-- Wyjscie obsluzonego przycisku
+			button_out: out std_logic
+		);
+	end component;
+	
+	-- Deklaracja sygnalow
+	-- -- Przyciski po przejsciu przez debouncer
+	signal left_button: std_logic := '0';
+	signal right_button: std_logic := '0';
+	signal confirm_button: std_logic := '0';
+	
+	
 begin
+	-- Stworzenie komponentow
+	-- -- DEBOUNCER
+	left_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(3), button_out => left_button);
+	right_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(2), button_out => right_button);
+	confirm_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(0), button_out => confirm_button);
+
 
 
 end top_arch;
