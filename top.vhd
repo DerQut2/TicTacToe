@@ -154,7 +154,7 @@ begin
 	-- -- -- -- right_button_buffer: std_logic
 	-- -- -- -- confirm_button_buffer: std_logic
 	-- --
-	BUUFER_BUTTONS: process(Clock100MHz, left_button, right_button, confirm_button)
+	BUFFER_BUTTONS: process(Clock100MHz, left_button, right_button, confirm_button)
 	begin
 		if (falling_edge(Clock100MHz)) then
 			left_button_buffer <= left_button;
