@@ -63,14 +63,66 @@ architecture top_arch of top is
 	signal left_button: std_logic := '0';
 	signal right_button: std_logic := '0';
 	signal confirm_button: std_logic := '0';
+	-- --
+	--
+	-- -- Zegarowy bufor przyciskow (w celu wykrycia zdarzen)
+	signal left_button_buffer: std_logic := '0';
+	signal right_button_buffer: std_logic := '0';
+	signal confirm_button_buffer: std_logic := '0';
+	-- --
+	--
+	-- -- Aktualna tura oraz stan planszy
+	signal game_turn: GAME_t := 'X';
+	signal game_reg: GAME_t_Vector := "---------";
+	-- --
+	--
+	-- -- Aktualna pozycja kursora
+	signal game_pos: unsigned (3 downto 0) := (others => '0');
+	
 	
 	
 begin
 	-- Stworzenie komponentow
+	--
 	-- -- DEBOUNCER
 	left_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(3), button_out => left_button);
 	right_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(2), button_out => right_button);
 	confirm_debouncer: DEBOUNCER port map (Clock100MHz => Clock100MHz, button_in => Button(0), button_out => confirm_button);
+	-- --
+	--
+	-- -- VGA
+	
+	-- --
+	--
+	-- -- Buzzer
+	
+	-- --
+	--
+	
+	-- Stworzenie procesow
+	--
+	-- -- Sekwencyjne buforowanie przyciskow
+	-- --
+	-- -- -- Odczyt:
+	-- -- -- -- Clock100MHz: std_logic
+	-- -- -- -- left_button: std_logic
+	-- -- -- -- right_button: std_logic
+	-- -- -- -- confirm_button: std_logic
+	-- --
+	-- -- -- Zapis:
+	-- -- -- -- left_button_buffer: std_logic
+	-- -- -- -- right_button_buffer: std_logic
+	-- -- -- -- confirm_button_buffer: std_logic
+	-- --
+	BUUFER_BUTTONS: process(Clock100MHz, left_button, right_button, confirm_button)
+	begin
+		if (rising_edge(Clock100MHz)) then
+			left_button_buffer <= left_button;
+			right_button_buffer <= right_button;
+			confirm_button_buffer <= confirm_button;
+		end if;
+	end process BUFFER_BUTTONS;
+	
 
 
 
