@@ -4,7 +4,7 @@
 -- Projekt:			Gra kolko i krzyzyk
 --
 -- Modul:			debouncer.vhd
--- Opis:				Debouncer do obslugi przyciskow
+-- Opis:			Debouncer do obslugi przyciskow
 ----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -99,6 +99,8 @@ begin
 			when STABILNY =>
 				if  (button_in = '1' OR button_in = 'H') then
 					stan_next <= CZEKAJ;
+				else
+				    stan_next <= STABILNY;
 				end if;
 
 			when CZEKAJ =>
@@ -108,11 +110,15 @@ begin
 					else
 						stan_next <= STABILNY;
 					end if;
+				else
+				    stan_next <= CZEKAJ;
 				end if;
 
 			when NIESTABILNY =>
 				if (DebounceCounter = "101111101011110000100000000") then
 					stan_next <= STABILNY;
+				else
+				    stan_next <= NIESTABILNY;
 				end if;
 				
 			end case;

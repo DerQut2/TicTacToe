@@ -61,6 +61,25 @@ architecture top_arch of top is
 		);
 	end component;
 	
+	component vga_engine is
+        Port (
+            -- Sygnal zegarowy
+            Clock100MHz: in std_logic;
+            -- Obecny stan planszy
+            game_reg: in GAME_t_Vector;
+            -- Obecna pozycja kursora
+            cursor_pos: in integer;
+            -- Wyjscia VGA
+            -- -- Linie koloru
+            VGA_R: out std_logic;
+            VGA_B: out std_logic;
+            VGA_G: out std_logic;
+            -- -- Linie synchronizacji
+            VGA_HS: out std_logic;
+            VGA_VS: out std_logic
+        );
+    end component vga_engine;
+	
 	-- Deklaracja sygnalow
 	-- -- Przyciski po przejsciu przez debouncer
 	signal left_button: std_logic := '0';
@@ -87,23 +106,12 @@ architecture top_arch of top is
 	-- --
 	--
 	-- -- Aktualna pozycja kursora
-	signal cursor_pos: unsigned (3 downto 0) := (others => '0');
+	signal cursor_pos: integer := 0;
 	-- --
 	--
 	-- -- Obsluga sygnalu reset
 	signal reset: std_logic := '0';
 	signal reset_counter: unsigned (26 downto 0) := (others => '0');
-	
-	-- Skopiowany kod
-	signal clk50: std_logic := '0';
-	signal clk25: std_logic := '0';
-	signal hs : unsigned (9 downto 0);
-	signal vs : unsigned (9 downto 0);
-	signal hs_out: std_logic := '0';
-	signal vs_out: std_logic := '0';
-	signal red: std_logic := '0';
-	signal blue: std_logic := '0';
-	signal green: std_logic := '0';
 	
 	
 	
@@ -117,7 +125,22 @@ begin
 	-- --
 	--
 	-- -- VGA
-	
+	vga_eng: VGA_ENGINE port map (
+        -- Sygnal zegarowy
+        Clock100MHz => Clock100MHz,
+        -- Obecny stan planszy
+        game_reg => game_reg,
+        -- Obecna pozycja kursora
+        cursor_pos => cursor_pos,
+        -- Wyjscia VGA
+        -- -- Linie koloru
+        VGA_R => VGA_R,
+        VGA_B => VGA_B,
+        VGA_G => VGA_G,
+        -- -- Linie synchronizacji
+        VGA_HS => VGA_HS,
+        VGA_VS => VGA_VS
+    );
 	-- --
 	--
 	-- -- Buzzer
@@ -182,24 +205,24 @@ begin
 	-- -- -- -- left_button_event: std_logic
 	-- -- -- -- right_button_event: std_logic
 	-- -- -- -- confirm_button_event: std_logic
-	-- -- -- -- cursor_pos: unsigned (3 downto 0)
+	-- -- -- -- cursor_pos: integer
 	-- --
 	-- -- -- Zapis:
-	-- -- -- -- cursor_pos: unsigned (3 downto 0)
+	-- -- -- -- cursor_pos: integer
 	-- --
 	SET_CURSOR_POSITION: process(Clock100MHz, reset, left_button_event, right_button_event, confirm_button_event, cursor_pos)
 	begin
 		if (reset = '1') then
-			cursor_pos <= "0000";
+			cursor_pos <= 0;
 		elsif (rising_edge(Clock100MHz)) then
 			if (left_button_event = '1') then
-				if NOT(cursor_pos = "0000") then
+				if NOT(cursor_pos = 0) then
 					cursor_pos <= cursor_pos - 1;
 				end if;
 			end if;
 			
 			if (right_button_event = '1') then
-				if NOT(cursor_pos = "1000") then
+				if NOT(cursor_pos = 8) then
 					cursor_pos <= cursor_pos + 1;
 				end if;
 			end if;
@@ -215,324 +238,12 @@ begin
 	right_button_event <= '1' when (right_button = '1' AND right_button_buffer = '0') else '0';
 	confirm_button_event <= '1' when (confirm_button = '1' AND confirm_button_buffer = '0') else '0';
 	--
-	LED(0) <= left_button;
-	LED(1) <= right_button;
-	LED(2) <= reset_button;
-	LED(3) <= confirm_button;
+	LED(3) <= left_button;
+	LED(2) <= right_button;
+	LED(1) <= reset;
+	LED(0) <= confirm_button;
 	--
 	Buzzer <= reset;
-	
-	-- generate a 50Mhz clock
- 
-	process (Clock100MHz)
-	 
-	begin
-	 
-		if Clock100MHz'event and Clock100MHz='1' then
-		 
-		if (clk50 = '0') then             
-		 
-		clk50 <= '1';
-		 
-		else
-		 
-		clk50 <= '0';
-		 
-		end if;
-		 
-		end if;
-	 
-	end process;
-	
-	process (clk50)
-	 
-	begin
-	 
-		if clk50'event and clk50='1' then
-		 
-		if (clk25 = '0') then             
-		 
-		clk25 <= '1';
-		 
-		else
-		 
-		clk25 <= '0';
-		 
-		end if;
-		 
-		end if;
-	 
-	end process;
-	
-	process (clk25)
- 
-	begin
- 
-		if clk25'event and clk25 = '1' then
-		 
-		if hs = "0011001000" and vs >= "0011001000" and vs <= "0011111010" then ---horizantal and vertical line display constraint
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0011001000" and vs >= "0100101100" and vs <= "0101000101" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0011111010" and vs >= "0011001000" and vs <= "0011100001" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0011111010" and vs >= "0101000101" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0100000100" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0100000100" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0100110110" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0100110110" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0101000000" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0101000000" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0101110010" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0101111110" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0110101110" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0110010101" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0110111000" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0111010001" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "0111110100" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "1000001101" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "1000110000" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "1001100010" and vs >= "0011001000" and vs <= "0011111010" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "1000110000" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "1001100010" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "1001101100" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		elsif hs = "1010011110" and vs >= "0100101100" and vs <= "0101011110" then
-		 
-		red <= '1' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		--------------------------------------------------------------------------------
-		 
-		else                     ----------blank signal display
-		 
-		red <= '0' ;
-		 
-		blue <= '0';
-		 
-		green <= '0' ;
-		 
-		end if;
-		 
-		if (hs > "0000000000" )
-		 
-		and (hs < "0001100001" ) -- 96+1   -----horizontal tracing
-		 
-		then
-		 
-		hs_out <= '0';
-		 
-		else
-		 
-		hs_out <= '1';
-		 
-		end if;
-		 
-		if (vs > "0000000000" )
-		 
-		and (vs < "0000000011" ) -- 2+1   ------vertical tracing
-		 
-		then
-		 
-		vs_out <= '0';
-		 
-		else
-		 
-		vs_out <= '1';
-		 
-		end if;
-		 
-		hs <= hs + 1 ;
-		 
-		if (hs= "1100100000") then     ----incremental of horizontal line
-		 
-		vs <= vs + 1;       ----incremental of vertical line
-		 
-		hs <= "0000000000";
-		 
-		end if;
-		 
-		if (vs= "1000001001") then                
-		 
-		vs <= "0000000000";
-		 
-		end if;
-		 
-		end if;
-		 
-		end process;
-		
-		VGA_R <= red;
-		VGA_B <= blue;
-		VGA_G <= green;
-		-- -- Linie synchronizacji
-		VGA_HS <= hs_out;
-		VGA_VS <= vs_out;
-	
-	
-	
-
-
 
 end top_arch;
 
