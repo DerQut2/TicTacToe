@@ -1,2 +1,1 @@
-# TicTacToe
- 
+Repozytorium pełni funkcję kopii projektu gry kółko i krzyżyk zrealizowanego korzystając z płytki rozwojowej Digilent Arty A7, wykorzystując wbudowane w nią przełączniki monostabilne i diody elektroluminescencyjne. Dodatkowo korzystano z modułu udostepniającego wyjście VGA oraz buzzera
